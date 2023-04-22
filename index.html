@@ -140,8 +140,23 @@ function compareFiles() {
   if (file1.json && file2.json) { // 両方のファイルが読み込まれている場合
     var table = document.getElementById("table"); // 表を取得
     table.innerHTML = ""; // 表を空にする
+    createTableHeader(table); //ここにヘッダーを作成する関数を呼び出す
     compareObjects(file1.json, file2.json, table); // オブジェクトの比較を行う
   }
+}
+
+// 表のヘッダーを作成する関数
+function createTableHeader(table) {
+  var thead = document.createElement("thead"); // thead要素を作成
+  var row = document.createElement("tr"); // tr要素を作成
+  var cell1 = document.createElement("th"); // th要素を作成（ファイル1）
+  var cell2 = document.createElement("th"); // th要素を作成（ファイル2）
+  cell1.textContent = "関数名"; // セルにテキストを設定
+  cell2.textContent = "値"; // セルにテキストを設定
+  row.appendChild(cell1); // 行にセルを追加
+  row.appendChild(cell2); // 行にセルを追加
+  thead.appendChild(row); // ヘッダーに行を追加
+  table.appendChild(thead); // 表にヘッダーを追加
 }
 
 // オブジェクトの比較を行う関数（再帰的に呼び出される）
@@ -162,8 +177,8 @@ function compareObjects(obj1, obj2, table, prefix) {
       table.appendChild(row); // 表に行を追加
       compareObjects(value1, value2 || {}, table, prefix + key + "."); // オブジェクトの比較を再帰的に行う（ファイル2の値が存在しない場合は空のオブジェクトを渡す）
     } else { // 値がオブジェクトでない場合
-      cell1.textContent += ": " + value1; // セルにファイル1の値を表示
-      cell2.textContent = value2 || ""; // セルにファイル2の値を設定（存在しない場合は空文字）
+cell1.textContent = prefix + key + ": " + value1; // セルにキーとファイル1の値を表示
+cell2.textContent = value2 || ""; // セルにファイル2の値を設定（存在しない場合は空文字）
       cell2.contentEditable = true; // セルを編集可能にする
       cell2.oninput = function() { // セルの値が変更されたときのイベントリスナーを設定
         var keys = this.key.split("."); // キーを"."で分割する
