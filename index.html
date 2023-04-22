@@ -3,56 +3,41 @@
 <head>
   <meta charset="UTF-8">
   <style>
-    /* cssのスタイルを定義 */
-    table {
-      border-collapse: collapse; /* 表の罫線を重ねる */
-      width: 100%; /* 表の幅を100%に設定 */
-    }
-    td {
-      border: 1px solid black; /* セルの罫線を黒色に設定 */
-      padding: 10px; /* セルの余白を10pxに設定 */
-      width: 50%; /* セルの幅を50%に設定 */
-    }
-    input {
-      width: 100%; /* 入力ボックスの幅を100%に設定 */
-    }
-    .key {
-      color: gray; /* キーの文字色を灰色に設定 */
-      font-size: small; /* キーの文字サイズを小さく設定 */
-      position: absolute; /* キーの位置を絶対位置に設定 */
-      top: 0; /* キーの上端をセルの上端に合わせる */
-      left: 0; /* キーの左端をセルの左端に合わせる */
-    }
-/* ファイル読み込みスペースのコンテナを作成 */
+table {
+  border-collapse: collapse; /* 表の罫線を重ねる */
+  width: 100%; /* 表の幅を100%に設定 */
+}
+
+td {
+  border: 1px solid black; /* セルの罫線を黒色に設定 */
+  padding: 10px; /* セルの余白を10pxに設定 */
+  width: 50%; /* セルの幅を50%に設定 */
+}
+
+input {
+  width: 100%; /* 入力ボックスの幅を100%に設定 */
+}
+
+/* コンポーネントやモジュール */
+.key {
+  color: gray; /* キーの文字色を灰色に設定 */
+  font-size: small; /* キーの文字サイズを小さく設定 */
+  position: absolute; /* キーの位置を絶対位置に設定 */
+  top: 0; /* キーの上端をセルの上端に合わせる */
+  left: 0; /* キーの左端をセルの左端に合わせる */
+}
+
 .file-container {
   display: flex; /* フレックスボックスを設定 */
   justify-content: space-between; /* 要素の間に余白を設定 */
   margin-bottom: 20px; /* 下に余白を設定 */
 }
 
-/* ファイル読み込みスペースの高さと幅を設定 */
 .file-container label {
   height: 100px;
   width: 48%;
 }
 
-/* ファイルが入ったら背景色と枠線を変更する関数 */
-function changeStyle(e) {
-  var files = e.dataTransfer ? e.dataTransfer.files : e.target.files;
-  if (files.length > 0) {
-    this.style.backgroundColor = "#F1F1F1"; /* 背景色を灰色に設定 */
-    this.style.borderColor = "#333"; /* 枠線色を黒色に設定 */
-    this.style.borderWidth = "3px"; /* 枠線幅を3pxに設定 */
-    this.style.borderStyle = "dashed"; /* 枠線スタイルを点線に設定 */
-    this.textContent = files[0].name; /* テキストにファイル名を表示 */
-    this.style.color = "#333"; /* テキスト色を黒色に設定 */
-    this.style.fontSize = "16px"; /* テキストサイズを16pxに設定 */
-    this.style.fontWeight = "bold"; /* テキストの太さを太く設定 */
-    this.style.textAlign = "center"; /* テキストの位置を中央に設定 */
-    this.style.lineHeight = "100px"; /* テキストの高さをラベルの高さに合わせる */
-  }
-}
-/* 保存ボタンのスタイルを設定 */
 #save {
   display: block; /* ブロック要素に設定 */
   margin: 20px auto; /* 上下に20px、左右に自動的に余白を設定 */
@@ -63,9 +48,29 @@ function changeStyle(e) {
   cursor: pointer; /* カーソルをポインターに設定 */
 }
 
-/* 保存ボタンにマウスオーバーしたときのスタイルを設定 */
+/* ユーティリティやヘルパー */
+
+.file-container label:hover {
+  background-color: #F1F1F1; /* 背景色を灰色に設定 */
+  border-color: #333; /* 枠線色を黒色に設定 */
+  border-width: 3px; /* 枠線幅を3pxに設定 */
+  border-style: dashed; /* 枠線スタイルを点線に設定 */
+}
+
+.file-container label span {
+  position: absolute; /* span要素の位置を絶対位置に設定 */
+  bottom: 0; /* span要素の下端をラベルの下端に合わせる */
+  left: 0; /* span要素の左端をラベルの左端に合わせる */
+}
+
 #save:hover {
   background-color: #555; /* 背景色を灰色に設定 */
+}
+
+.object {
+  color: gray; /* 文字色を灰色に設定 */
+  font-style: italic; /* 文字スタイルを斜体に設定 */
+  pointer-events: none; /* マウスイベントを無効に設定 */
 }
   </style>
 </head>
@@ -151,6 +156,7 @@ function compareObjects(obj1, obj2, table, prefix) {
     cell1.textContent = prefix + key; // セルにキーを表示
     if (typeof value1 === "object" && value1 !== null) { // 値がオブジェクトの場合（nullは除く）
       cell2.textContent = "オブジェクト"; // セルにオブジェクトであることを表示
+      cell2.className = "object"; // セルにclass属性を追加
       row.appendChild(cell1); // 行にセルを追加
       row.appendChild(cell2); // 行にセルを追加
       table.appendChild(row); // 表に行を追加
@@ -193,13 +199,16 @@ var save = document.getElementById("save");
 
 // 保存ボタンがクリックされたときのイベントリスナーを設定
 save.onclick = function() {
-  var data = JSON.stringify(file2.json); // ファイル2のJSONを文字列化
+  var data = JSON.stringify(file2.json, null, 2); // ファイル2のJSONを文字列化（第二引数にnull、第三引数に2を渡す）
   var blob = new Blob([data], {type: "application/json"}); // ブロブオブジェクトを作成
   var url = URL.createObjectURL(blob); // ブロブオブジェクトからURLを作成
   var a = document.createElement("a"); // a要素を作成
   a.href = url; // a要素のhref属性にURLを設定
-  a.download = "file2.json"; // a要素のdownload属性にファイル名を設定
-  a.click(); // a要素をクリックする
+  var filename = window.prompt("ファイル名を入力してください", "file2.json"); // ユーザーにファイル名を入力させる
+  if (filename) { // ファイル名が入力された場合
+    a.download = filename; // a要素のdownload属性にファイル名を設定
+    a.click(); // a要素をクリックする
+  }
 };
 
 // ファイルを読み込んだらファイル名を表示する関数
