@@ -23,14 +23,63 @@
       top: 0; /* キーの上端をセルの上端に合わせる */
       left: 0; /* キーの左端をセルの左端に合わせる */
     }
+/* ファイル読み込みスペースのコンテナを作成 */
+.file-container {
+  display: flex; /* フレックスボックスを設定 */
+  justify-content: space-between; /* 要素の間に余白を設定 */
+  margin-bottom: 20px; /* 下に余白を設定 */
+}
+
+/* ファイル読み込みスペースの高さと幅を設定 */
+.file-container label {
+  height: 100px;
+  width: 48%;
+}
+
+/* ファイルが入ったら背景色と枠線を変更する関数 */
+function changeStyle(e) {
+  var files = e.dataTransfer ? e.dataTransfer.files : e.target.files;
+  if (files.length > 0) {
+    this.style.backgroundColor = "#F1F1F1"; /* 背景色を灰色に設定 */
+    this.style.borderColor = "#333"; /* 枠線色を黒色に設定 */
+    this.style.borderWidth = "3px"; /* 枠線幅を3pxに設定 */
+    this.style.borderStyle = "dashed"; /* 枠線スタイルを点線に設定 */
+    this.textContent = files[0].name; /* テキストにファイル名を表示 */
+    this.style.color = "#333"; /* テキスト色を黒色に設定 */
+    this.style.fontSize = "16px"; /* テキストサイズを16pxに設定 */
+    this.style.fontWeight = "bold"; /* テキストの太さを太く設定 */
+    this.style.textAlign = "center"; /* テキストの位置を中央に設定 */
+    this.style.lineHeight = "100px"; /* テキストの高さをラベルの高さに合わせる */
+  }
+}
+/* 保存ボタンのスタイルを設定 */
+#save {
+  display: block; /* ブロック要素に設定 */
+  margin: 20px auto; /* 上下に20px、左右に自動的に余白を設定 */
+  padding: 10px; /* 内側に10pxの余白を設定 */
+  background-color: #333; /* 背景色を黒色に設定 */
+  color: #fff; /* 文字色を白色に設定 */
+  border: none; /* 枠線をなくす */
+  cursor: pointer; /* カーソルをポインターに設定 */
+}
+
+/* 保存ボタンにマウスオーバーしたときのスタイルを設定 */
+#save:hover {
+  background-color: #555; /* 背景色を灰色に設定 */
+}
   </style>
 </head>
 <body>
+<!-- ファイル読み込みスペースのコンテナを作成 -->
+<div class="file-container">
   <!-- ファイル読み込みスペースを作成 -->
-	<label id="file1" style="border: 1px solid black; height: 100px; display: block; position: relative;">
-	<input type="file" id="input1" style="opacity: 0; position: absolute; top: 0; left: 0; width: 100%; height: 100%;">ファイル1をドラッグ&ドロップまたはクリックしてください。</label>
-	<label id="file2" style="border: 1px solid black; height: 100px; display: block; position: relative;">
-	<input type="file" id="input2" style="opacity: 0; position: absolute; top: 0; left: 0; width: 100%; height: 100%;">ファイル2をドラッグ&ドロップまたはクリックしてください。</label>
+  <label id="file1" style="border: 1px solid black; position: relative;">
+    <input type="file" id="input1" style="opacity: 0; position: absolute; top: 0; left: 0; width: 100%; height: 100%;">ファイル1をドラッグ&ドロップまたはクリックしてください。</label>
+  <label id="file2" style="border: 1px solid black; position: relative;">
+    <input type="file" id="input2" style="opacity: 0; position: absolute; top: 0; left: 0; width: 100%; height: 100%;">ファイル2をドラッグ&ドロップまたはクリックしてください。</label>
+</div>
+<!-- 保存ボタンを作成 -->
+<button id="save">ファイル2を保存</button>
   <!-- 表を作成 -->
   <table id="table"></table>
   <script>
@@ -137,6 +186,40 @@ function compareObjects(obj1, obj2, table, prefix) {
     }
   }
 }
+</script>
+<script>
+// 保存ボタンを取得
+var save = document.getElementById("save");
+
+// 保存ボタンがクリックされたときのイベントリスナーを設定
+save.onclick = function() {
+  var data = JSON.stringify(file2.json); // ファイル2のJSONを文字列化
+  var blob = new Blob([data], {type: "application/json"}); // ブロブオブジェクトを作成
+  var url = URL.createObjectURL(blob); // ブロブオブジェクトからURLを作成
+  var a = document.createElement("a"); // a要素を作成
+  a.href = url; // a要素のhref属性にURLを設定
+  a.download = "file2.json"; // a要素のdownload属性にファイル名を設定
+  a.click(); // a要素をクリックする
+};
+
+// ファイルを読み込んだらファイル名を表示する関数
+function showFileName(e) {
+  var files = e.dataTransfer ? e.dataTransfer.files : e.target.files;
+  if (files.length > 0) {
+    var span = document.createElement("span"); // span要素を作成
+    span.textContent = files[0].name; // span要素にファイル名を設定
+    span.style.position = "absolute"; // span要素の位置を絶対位置に設定
+    span.style.bottom = "0"; // span要素の下端をラベルの下端に合わせる
+    span.style.left = "0"; // span要素の左端をラベルの左端に合わせる
+    this.appendChild(span); // ラベルにspan要素を追加
+  }
+}
+
+// ファイル読み込みスペースにイベントリスナーを追加
+file1.addEventListener("drop", showFileName);
+file2.addEventListener("drop", showFileName);
+input1.addEventListener("change", showFileName);
+input2.addEventListener("change", showFileName);
 </script>
 </body>
 </html>
