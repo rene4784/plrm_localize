@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <style>
+    /* cssのスタイルを定義 */
+    table {
+      border-collapse: collapse; /* 表の罫線を重ねる */
+      width: 100%; /* 表の幅を100%に設定 */
+    }
+    td {
+      border: 1px solid black; /* セルの罫線を黒色に設定 */
+      padding: 10px; /* セルの余白を10pxに設定 */
+      width: 50%; /* セルの幅を50%に設定 */
+    }
+    input {
+      width: 100%; /* 入力ボックスの幅を100%に設定 */
+    }
+    .key {
+      color: gray; /* キーの文字色を灰色に設定 */
+      font-size: small; /* キーの文字サイズを小さく設定 */
+      position: absolute; /* キーの位置を絶対位置に設定 */
+      top: 0; /* キーの上端をセルの上端に合わせる */
+      left: 0; /* キーの左端をセルの左端に合わせる */
+    }
+  </style>
+</head>
+<body>
+  <!-- ファイル読み込みスペースを作成 -->
+  <div id="file1" style="border: 1px solid black; height: 100px;">ファイル1をドラッグ&ドロップしてください。</div>
+  <div id="file2" style="border: 1px solid black; height: 100px;">ファイル2をドラッグ&ドロップしてください。</div>
+  <!-- 表を作成 -->
+  <table id="table"></table>
+  <script>
+// ファイル読み込みスペースを作成
+var file1 = document.getElementById("file1"); // 比較元のファイル
+var file2 = document.getElementById("file2"); // 比較対象のファイル
+
+// ファイルをドラッグ&ドロップして読み込む関数
+function handleDrop(e) {
+  e.preventDefault();
+  var files = e.dataTransfer.files;
+  if (files.length > 0) {
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      try {
+        var json = JSON.parse(e.target.result); // ファイルの内容をJSONとして解析
+        if (this.file === file1) {
+          file1.json = json; // ファイル1のJSONを保存
+        } else if (this.file === file2) {
+          file2.json = json; // ファイル2のJSONを保存
+        }
+        compareFiles(); // ファイルの比較を行う
+      } catch (error) {
+        alert("無効なJSONファイルです。"); // エラー処理
+      }
+    };
+    reader.file = this; // ファイルの情報を保存
+    reader.readAsText(files[0]); // ファイルをテキストとして読み込む
+  }
+}
+
+// ドラッグ&ドロップのイベントリスナーを設定
+file1.addEventListener("dragover", function(e) {
+  e.preventDefault();
+});
+file1.addEventListener("drop", handleDrop);
+file2.addEventListener("dragover", function(e) {
+  e.preventDefault();
+});
+file2.addEventListener("drop", handleDrop);
+
+// ファイルの比較を行う関数
+function compareFiles() {
+  if (file1.json && file2.json) { // 両方のファイルが読み込まれている場合
+    var table = document.getElementById("table"); // 表を取得
+    table.innerHTML = ""; // 表を空にする
+    compareObjects(file1.json, file2.json, table); // オブジェクトの比較を行う
+  }
+}
+
+// オブジェクトの比較を行う関数（再帰的に呼び出される）
+function compareObjects(obj1, obj2, table, prefix) {
+  prefix = prefix || ""; // キーの接頭辞を設定（初期値は空文字）
+  for (var key in obj1) { // ファイル1のオブジェクトのキーについて繰り返す
+    var value1 = obj1[key]; // ファイル1のオブジェクトの値を取得
+    var value2 = obj2[key]; // ファイル2のオブジェクトの値を取得（存在しない場合はundefined）
+    var row = document.createElement("tr"); // 表の行を作成
+    var cell1 = document.createElement("td"); // 表のセルを作成（ファイル1）
+    var cell2 = document.createElement("td"); // 表のセルを作成（ファイル2）
+    cell1.textContent = prefix + key; // セルにキーを表示
+    if (typeof value1 === "object" && value1 !== null) { // 値がオブジェクトの場合（nullは除く）
+      cell2.textContent = "オブジェクト"; // セルにオブジェクトであることを表示
+      row.appendChild(cell1); // 行にセルを追加
+      row.appendChild(cell2); // 行にセルを追加
+      table.appendChild(row); // 表に行を追加
+      compareObjects(value1, value2 || {}, table, prefix + key + "."); // オブジェクトの比較を再帰的に行う（ファイル2の値が存在しない場合は空のオブジェクトを渡す）
+    } else { // 値がオブジェクトでない場合
+      var input = document.createElement("input"); // 入力ボックスを作成
+      input.type = "text"; // 入力ボックスのタイプをテキストに設定
+      input.value = value2 || ""; // 入力ボックスの値をファイル2の値に設定（存在しない場合は空文字）
+      input.onchange = function() { // 入力ボックスの値が変更されたときのイベントリスナーを設定
+        var keys = this.key.split("."); // キーを"."で分割する
+        var obj = file2.json; // ファイル2のJSONを取得
+        for (var i = 0; i < keys.length - 1; i++) { // 最後のキー以外について繰り返す
+          var k = keys[i]; // キーを取得
+          if (!obj[k]) { // オブジェクトにキーが存在しない場合
+            obj[k] = {}; // 空のオブジェクトを作成
+          }
+          obj = obj[k]; // オブジェクトを更新
+        }
+        obj[keys[keys.length - 1]] = this.value; // 最後のキーに入力ボックスの値を設定
+      };
+      input.key = prefix + key; // 入力ボックスにキーの情報を保存
+      cell1.textContent += ": " + value1; // セルにファイル1の値を表示
+      cell2.appendChild(input); // セルに入力ボックスを追加
+      if (value2 === undefined) { // ファイル2に値が存在しない場合
+        row.style.backgroundColor = "yellow"; // 行の背景色を黄色に設定（警告）
+        input.oninput = function() { // 入力ボックスに入力されたときのイベントリスナーを設定
+          if (this.value) { // 入力ボックスの値が空でない場合
+            this.parentNode.parentNode.style.backgroundColor = ""; // 行の背景色を元に戻す
+          }
+        };
+      }
+      row.appendChild(cell1); // 行にセルを追加
+      row.appendChild(cell2); // 行にセルを追加
+      table.appendChild(row); // 表に行を追加
+    }
+  }
+}
+</script>
+</body>
+</html>
